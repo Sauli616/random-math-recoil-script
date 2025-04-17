@@ -1,0 +1,29 @@
+-- Käyttäjän asetukset
+local minXMovement = -1  -- Minim H
+local maxXMovement = 1  -- Max H
+--
+local minYMovement = 4  -- Minim V-
+local maxYMovement = 6  -- Max V
+--
+local minSleepTime = 10  -- Minim Delay (ms)
+local maxSleepTime = 15  -- Max Delay (ms)
+
+--/////////////////////////////////
+--//########DONT TOUCH##########//
+--///////////////////////////////
+
+EnablePrimaryMouseButtonEvents(true);
+
+function OnEvent(event, arg)
+if IsKeyLockOn("Scrolllock") and IsMouseButtonPressed(3) then
+repeat
+if IsMouseButtonPressed(1) then
+local xMovement = math.random(minXMovement, maxXMovement)
+local yMovement = math.random(minYMovement, maxYMovement)
+local sleepTime = math.random(minSleepTime, maxSleepTime)
+MoveMouseRelative(xMovement, yMovement)
+Sleep(sleepTime)
+end
+until not IsMouseButtonPressed(1) or not IsMouseButtonPressed(3)
+end
+end
