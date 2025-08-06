@@ -1,0 +1,203 @@
+-- 1. Perusasetukset ja muuttujat
+local current_weapon = "r4c"
+local script_active = false
+
+local Activate_Key = "scrolllock"
+local Fire_key = 1
+local ADS_key = 2
+
+-- 2. Asetetaan weapon_table lajiteltuna AR, SMG, LMG ja Placeholderit
+
+local weapon_table = {
+  -- Assault Rifles (AR)
+  ["ar33"]  = { x=-0.14, y=-0.32 }, -- Flores / Iana / Dokkaebi
+  ["f2"]    = { x=-0.10, y=-0.30 }, -- Twitch (F2)
+  ["mk17"]  = { x=-0.13, y=-0.32 }, -- Blackbeard / Maverick
+  ["r4c"]   = { x=-0.15, y=-0.34 }, -- Ash
+  ["ty8"]   = { x=-0.13, y=-0.30 }, -- Hibana (Type-89)
+  ["v308"]  = { x=-0.14, y=-0.31 }, -- Lion (V308)
+  ["c8"]    = { x=-0.15, y=-0.34 }, -- Buck / Kali
+  ["f90"]   = { x=-0.15, y=-0.32 }, -- Gridlock (F90)
+  ["ak12"]  = { x=0, y=0 },         -- Ace placeholder
+  ["ak7"]   = { x=0, y=0 },         -- Nomad placeholder
+  ["c7e"]   = { x=0, y=0 },         -- Jackal / Alibi placeholder
+  ["spear"] = { x=-0.13, y=-0.31 }, -- Thunderbird
+  ["416"]   = { x=-0.13, y=-0.33 }, -- Jäger (416-C Carbine)
+
+  -- Submachine Guns (SMG)
+  ["mp5"]   = { x=-0.11, y=-0.28 }, -- Mute / Doc / Melusi / Echo
+  ["mp5k"]  = { x=-0.11, y=-0.28 }, -- Mute / Doc / Melusi / Echo
+  ["mp7"]   = { x=-0.11, y=-0.29 }, -- Bandit / Fenrir
+  ["mpx"]   = { x=-0.11, y=-0.28 }, -- Mozzie / Vigil / Clash placeholder
+  ["p10"]   = { x=-0.11, y=-0.27 }, -- Aruni
+  ["p90"]   = { x=-0.13, y=-0.30 }, -- Osa / Solis
+  ["ump"]   = { x=-0.12, y=-0.29 }, -- Pulse placeholder
+  ["g8a"]   = { x=0, y=0 },         -- Amaru placeholder
+  ["9vsn"]  = { x=-0.12, y=-0.28 }, -- Kapkan / Valkyrie / Azami placeholder
+
+  -- Light Machine Guns (LMG)
+  ["dp27"]  = { x=-0.20, y=-0.42 }, -- Tachanka (DP-27)
+  ["lmge"]  = { x=-0.19, y=-0.41 }, -- Zofia / Finka / Maverick / Maestro / Ram
+  ["m249"]  = { x=-0.20, y=-0.43 }, -- Capitão / Fuze
+
+  -- Placeholders / Muut aseet
+  ["custom1"] = { x=0, y=0 },
+  ["custom2"] = { x=0, y=0 },
+  ["custom3"] = { x=0, y=0 },
+  ["custom4"] = { x=0, y=0 },
+  ["custom5"] = { x=0, y=0 },
+  ["custom6"] = { x=0, y=0 },
+  ["custom7"] = { x=0, y=0 },
+  ["custom8"] = { x=0, y=0 },
+  ["custom9"] = { x=0, y=0 },
+  ["custom10"] = { x=0, y=0 },
+  ["custom11"] = { x=0, y=0 },
+}
+
+-- 3. Operaattorit lyhennettynä (max 5 merkkiä ja päättyen vokaaliin jos mahdollista)
+
+local function ends_with_vowel(str)
+  local vowels = { a=true,e=true,i=true,o=true,u=true,y=true }
+  local last_char = str:sub(-1):lower()
+  return vowels[last_char] or false
+end
+
+local function shorten_name(name)
+  if #name <= 2 then
+    return name -- Jätetään alkuperäiseksi, max 5 merkkiä anyway
+  end
+
+  local short = name:sub(1,5)
+
+  while not ends_with_vowel(short) and #short > 2 do
+    short = short:sub(1, -2)
+  end
+
+  return short
+end
+
+local operator_weapons_raw = {
+  -- Hyökkääjät
+  ["ashe"]  = "r4c",
+  ["bbla"]  = "mk17",
+  ["bucka"] = "c8",
+  ["capta"] = "m249",
+  ["dokae"] = "ar33",
+  ["finka"] = "lmge",
+  ["flore"] = "ar33",
+  ["fuzea"] = "m249",
+  ["glazo"] = "custom4",
+  ["hibaa"] = "ty8",
+  ["iana"]  = "ar33",
+  ["jacka"] = "c7e",
+  ["liona"] = "v308",
+  ["mavea"] = "lmge",
+  ["monta"] = "custom3",
+  ["nomao"] = "ak7",
+  ["r4c"]   = "r4c",
+  ["stri"]  = "custom1",
+  ["twi"]   = "f2",
+  ["yinga"] = "t5",
+  ["zofia"] = "lmge",
+
+  -- Puolustajat
+  ["alibi"]  = "c7e",
+  ["bandi"]  = "mp7",
+  ["castl"]  = "mp5",
+  ["clash"]  = "mpx",
+  ["doca"]   = "mp5",
+  ["echoa"]  = "mp5k",
+  ["elaa"]   = "mp5k",
+  ["fenri"]  = "mp7",
+  ["frost"]  = "custom8",
+  ["jager"]  = "416",
+  ["kapka"]  = "9vsn",
+  ["kaida"]  = "custom10",
+  ["lesio"]  = "t5",
+  ["maesta"] = "lmge",
+  ["melus"]  = "mp5k",
+  ["miraa"]  = "mp5",
+  ["mozzi"]  = "mpx",
+  ["mutea"]  = "mp5k",
+  ["oryxa"]  = "t5",
+  ["pulsa"]  = "ump",
+  ["rooka"]  = "mp5",
+  ["skopo"]  = "custom11",
+  ["smoke"]  = "custom7",
+  ["sent"]   = "custom6",
+  ["tachka"] = "dp27",
+  ["thund"]  = "spear",
+  ["tubaa"]  = "mpx",
+  ["valky"]  = "9vsn",
+  ["vigila"] = "mpx",
+  ["azami"]  = "9vsn",
+  ["solis"]  = "p90",
+  ["rama"]   = "lmge",
+  ["deimo"]  = "custom5",
+  ["brava"]  = "custom4",
+  ["sens"]   = "custom2",
+  ["grim"]   = "custom3",
+  ["rauro"]  = "custom1",
+  ["zeroa"]  = "custom5",
+  ["nokaa"]  = "custom4",
+  ["amaru"]  = "g8a",
+  ["grid"]   = "f90",
+}
+
+local operator_weapons = {}
+
+for k,v in pairs(operator_weapons_raw) do
+  local short_name = shorten_name(k)
+  operator_weapons[short_name] = v
+end
+
+-- 4. Funktiot ja eventit
+
+local function getRecoil(w)
+  return weapon_table[w] or { x=0, y=0 }
+end
+
+local function Volatility(r,i)
+  return r * (1 + i * math.random())
+end
+
+local function MoveMouseRecoil(x,y)
+  MoveMouseRelative(math.floor(Volatility(0.7,1)*x),
+                    math.floor(Volatility(0.7,1)*y))
+end
+
+local function Direct_Fire()
+  local r = getRecoil(current_weapon)
+  local fx,fy = math.abs(r.x)-math.floor(math.abs(r.x)), math.abs(r.y)-math.floor(math.abs(r.y))
+  local ix,iy = 0,0
+  repeat
+    MoveMouseRecoil(r.x,r.y)
+    ix = ix+fx; if ix>=Volatility(0.7,1) then MoveMouseRecoil(r.x>0 and 1 or -1,0); ix=0 end
+    iy = iy+fy; if iy>=Volatility(0.7,1) then MoveMouseRecoil(0,r.y>0 and 1 or -1); iy=0 end
+    Sleep(math.random(6,12))
+  until not IsMouseButtonPressed(Fire_key) or not IsMouseButtonPressed(ADS_key)
+end
+
+local function SelectWeaponByOperator(n)
+  if operator_weapons[n] then
+    current_weapon = operator_weapons[n]
+    OutputLogMessage("Selected operator %s → %s\n", n, current_weapon)
+  else
+    OutputLogMessage("Operator %s not found in weapon list\n", n)
+  end
+end
+
+function OnEvent(evt,arg)
+  if evt == "PROFILE_ACTIVATED" then
+    EnablePrimaryMouseButtonEvents(true)
+  end
+
+  if evt == "PROFILE_DEACTIVATED" then
+    ReleaseMouseButton(Fire_key)
+    ReleaseMouseButton(ADS_key)
+  end
+
+  if IsKeyLockOn(Activate_Key) and evt == "MOUSE_BUTTON_PRESSED" and arg == Fire_key and IsMouseButtonPressed(ADS_key) then
+    Direct_Fire()
+  end
+end
