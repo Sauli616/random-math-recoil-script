@@ -4,8 +4,14 @@ function OnEvent(event, arg)
   if IsKeyLockOn("Scrolllock") and IsMouseButtonPressed(3) then
     repeat
       if IsMouseButtonPressed(1) then
-        MoveMouseRelative(math.random(-1, 1), math.random(4, 6)) -- Min,Max H -- Min,Max H
-        Sleep(math.random(10, 15)) -- Min,Max Delay
+        -- Pienet askelmat x- ja y-akselilla
+        local steps = math.random(3, 6)
+        for i = 1, steps do
+          local moveX = math.random(-1, 1) 
+          local moveY = math.random(1, 2)
+          MoveMouseRelative(moveX, moveY)
+          Sleep(math.random(6, 12))
+        end
       end
     until not IsMouseButtonPressed(1) or not IsMouseButtonPressed(3)
   end
