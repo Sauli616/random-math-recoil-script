@@ -1,0 +1,14 @@
+local Y=4
+
+EnablePrimaryMouseButtonEvents(true)
+  function OnEvent()
+    if not IsKeyLockOn("scrolllock") or not IsMouseButtonPressed(3) then return end
+     repeat
+        if IsMouseButtonPressed(1) then
+          repeat
+            MoveMouseRelative(math.random(-1,1), math.floor(Y*math.random(85,120)/100))
+            Sleep(math.random(2,4))
+          until not IsMouseButtonPressed(1)
+      end
+  until not IsMouseButtonPressed(3)
+end
